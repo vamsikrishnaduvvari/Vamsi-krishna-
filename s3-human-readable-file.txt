@@ -1,0 +1,4 @@
+AWS S3 upload verification file
+
+This is a human-readable text file created for the requested S3 workflow.
+It will be stored as plain text in one bucket and as a ZIP archive in a second bucket.
