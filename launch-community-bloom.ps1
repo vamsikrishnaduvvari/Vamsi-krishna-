@@ -2,17 +2,20 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'aws-query.ps1')
 
 $region = 'ap-south-1'
-$websiteRoot = Join-Path $PSScriptRoot 'community-bloom'
-$websiteFiles = Get-ChildItem -LiteralPath $websiteRoot -File
-$imageFiles = Get-ChildItem -LiteralPath (Join-Path $websiteRoot 'images') -File
-$userDataLines = @('#!/bin/bash', 'set -euxo pipefail', 'dnf install -y nginx', 'rm -rf /usr/share/nginx/html/*')
-foreach ($file in @($websiteFiles) + @($imageFiles)) {
-    $relativePath = if ($file.Directory.Name -eq 'images') { "images/$($file.Name)" } else { $file.Name }
-    if ($relativePath.StartsWith('images/')) { $userDataLines += 'mkdir -p /usr/share/nginx/html/images' }
-    $encoded = [Convert]::ToBase64String([IO.File]::ReadAllBytes($file.FullName))
-    $userDataLines += "echo '$encoded' | base64 -d > /usr/share/nginx/html/$relativePath"
-}
-$userDataLines += @('nginx -t', 'systemctl enable --now nginx', 'curl --fail http://127.0.0.1/')
+$repoRaw = 'https://raw.githubusercontent.com/vamsikrishnaduvvari/Vamsi-krishna-/main/community-bloom'
+$userDataLines = @(
+    '#!/bin/bash',
+    'set -euxo pipefail',
+    'dnf install -y nginx',
+    'rm -rf /usr/share/nginx/html/*',
+    'mkdir -p /usr/share/nginx/html/images',
+    "curl --fail --location --retry 5 '$repoRaw/index.html' -o /usr/share/nginx/html/index.html",
+    "curl --fail --location --retry 5 '$repoRaw/styles.css' -o /usr/share/nginx/html/styles.css",
+    "curl --fail --location --retry 5 '$repoRaw/images/community-garden-hero.png' -o /usr/share/nginx/html/images/community-garden-hero.png",
+    'nginx -t',
+    'systemctl enable --now nginx',
+    'curl --fail http://127.0.0.1/'
+)
 $userData = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($userDataLines -join "`n")))
 
 $result = Invoke-AwsQuery RunInstances @{
