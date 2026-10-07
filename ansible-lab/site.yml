@@ -1,0 +1,35 @@
+---
+- name: Configure the managed node
+  hosts: managed
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+
+    - name: Publish an Ansible-managed status page
+      ansible.builtin.copy:
+        dest: /usr/share/nginx/html/index.html
+        mode: "0644"
+        content: |
+          <!doctype html>
+          <title>Ansible managed</title>
+          <h1>Managed by Ansible</h1>
+          <p>This server was configured by the Ansible control node.</p>
+
+    - name: Start and enable Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Run a verification command
+      ansible.builtin.command: hostnamectl --static
+      register: node_name
+      changed_when: false
+
+    - name: Show the managed hostname
+      ansible.builtin.debug:
+        var: node_name.stdout
