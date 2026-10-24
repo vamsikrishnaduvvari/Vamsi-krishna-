@@ -38,6 +38,7 @@ pipeline {
           set -eu
           printf '[web]\\n' > deploy/ansible/inventory/hosts.ini
           printf '%s' "$TARGETS" | tr ',' '\\n' >> deploy/ansible/inventory/hosts.ini
+          printf '\\n[web:vars]\\nansible_ssh_common_args=-o StrictHostKeyChecking=accept-new\\n' >> deploy/ansible/inventory/hosts.ini
           ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-galaxy collection install -r deploy/ansible/requirements.yml
           ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-playbook deploy/ansible/deploy.yml \\
             --private-key /run/deploy-key/ansible-lab.pem \\
