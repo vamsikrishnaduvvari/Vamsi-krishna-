@@ -1,0 +1,53 @@
+---
+- name: Install Docker prerequisites on Debian hosts
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - docker.io
+    update_cache: true
+    state: present
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Install Docker on RedHat hosts
+  ansible.builtin.dnf:
+    name: docker
+    state: present
+  when: ansible_facts.os_family == 'RedHat'
+
+- name: Enable Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: /opt/northstar
+    state: directory
+    mode: '0755'
+
+- name: Copy the Docker image archive from Jenkins
+  ansible.builtin.copy:
+    src: "{{ image_archive }}"
+    dest: /opt/northstar/northstar.tar
+    mode: '0644'
+  notify: Load website image
+
+- name: Flush image load before container startup
+  ansible.builtin.meta: flush_handlers
+
+- name: Run the website container
+  community.docker.docker_container:
+    name: northstar-web
+    image: "{{ image_name }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - '80:8080'
+    recreate: true
+
+- name: Verify local HTTP response
+  ansible.builtin.uri:
+    url: http://127.0.0.1/
+    status_code: 200

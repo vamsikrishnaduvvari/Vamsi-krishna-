@@ -1,0 +1,8 @@
+.git
+.env
+.ssh
+.aws-local
+**/*.pem
+**/*.key
+**/hosts.ini
+northstar-website/.git

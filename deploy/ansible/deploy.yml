@@ -1,0 +1,7 @@
+---
+- name: Deploy Northstar website container
+  hosts: web
+  become: true
+  gather_facts: true
+  roles:
+    - northstar_web
