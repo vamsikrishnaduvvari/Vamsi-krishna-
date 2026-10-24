@@ -21,7 +21,7 @@ if (job.nextBuildNumber == 1) {
   println("Scheduled initial Jenkins Pipeline build: ${jobName}")
 }
 
-if (job.nextBuildNumber == 2) {
+if (job.nextBuildNumber >= 2 && job.nextBuildNumber <= 3) {
   def actions = [
     new hudson.model.CauseAction(new hudson.model.Cause.RemoteCause('jenkins-bootstrap', 'Deploy to both web servers')),
     new hudson.model.ParametersAction(
