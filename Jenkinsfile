@@ -38,7 +38,6 @@ pipeline {
           set -eu
           printf '[web]\\n' > deploy/ansible/inventory/hosts.ini
           printf '%s' "$TARGETS" | tr ',' '\\n' >> deploy/ansible/inventory/hosts.ini
-          chmod 600 /run/deploy-key/ansible-lab.pem
           ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-galaxy collection install -r deploy/ansible/requirements.yml
           ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-playbook deploy/ansible/deploy.yml \\
             --private-key /run/deploy-key/ansible-lab.pem \\
