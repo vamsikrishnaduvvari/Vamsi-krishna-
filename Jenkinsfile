@@ -9,6 +9,7 @@ pipeline {
 
   parameters {
     booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Deploy only after two target servers are available.')
+    string(name: 'TARGETS', defaultValue: '', description: 'Comma-separated private IPs or DNS names for the two web servers.')
   }
 
   stages {
@@ -31,24 +32,20 @@ pipeline {
     }
 
     stage('Deploy with Ansible') {
-      when { expression { return params.DEPLOY } }
+      when { expression { return params.DEPLOY && params.TARGETS.trim() } }
       steps {
-        withCredentials([
-          sshUserPrivateKey(credentialsId: 'northstar-deploy-ssh', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER'),
-          file(credentialsId: 'northstar-deploy-inventory', variable: 'DEPLOY_INVENTORY')
-        ]) {
-          sh '''#!/bin/sh
-            set -eu
-            cp "$DEPLOY_INVENTORY" deploy/ansible/inventory/hosts.ini
-            chmod 600 "$SSH_KEY"
-            ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-galaxy collection install -r deploy/ansible/requirements.yml
-            ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-playbook deploy/ansible/deploy.yml \\
-              --private-key "$SSH_KEY" \\
-              -e "ansible_user=$SSH_USER" \\
-              -e "image_name=$IMAGE_NAME:$IMAGE_TAG" \\
-              -e "image_archive=$WORKSPACE/$IMAGE_ARCHIVE"
-          '''
-        }
+        sh '''#!/bin/sh
+          set -eu
+          printf '[web]\\n' > deploy/ansible/inventory/hosts.ini
+          printf '%s' "$TARGETS" | tr ',' '\\n' >> deploy/ansible/inventory/hosts.ini
+          chmod 600 /run/deploy-key/ansible-lab.pem
+          ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-galaxy collection install -r deploy/ansible/requirements.yml
+          ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-playbook deploy/ansible/deploy.yml \\
+            --private-key /run/deploy-key/ansible-lab.pem \\
+            -e 'ansible_user=ec2-user' \\
+            -e "image_name=$IMAGE_NAME:$IMAGE_TAG" \\
+            -e "image_archive=$WORKSPACE/$IMAGE_ARCHIVE"
+        '''
       }
     }
   }

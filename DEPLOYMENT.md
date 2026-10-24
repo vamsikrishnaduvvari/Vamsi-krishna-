@@ -18,12 +18,7 @@ docker compose -f docker-compose.jenkins.yml up --build
 
 Open `http://localhost:8081`, complete Jenkins setup, and create a Pipeline job from this repository. Install the plugins in `jenkins/plugins.txt` if Jenkins does not offer them during setup.
 
-Create these Jenkins credentials before enabling deployment:
-
-- `northstar-deploy-ssh`: SSH username/private-key credential for both web hosts.
-- `northstar-deploy-inventory`: secret-file credential containing the production `hosts.ini`.
-
-The provided example inventory is intentionally non-routable and cannot deploy anywhere.
+On the AWS controller, Jenkins receives the already-existing deployment key as a read-only container mount. For production, replace this lab shortcut with Jenkins SSH credentials. The provided example inventory is intentionally non-routable and cannot deploy anywhere.
 
 ## Test the site image locally
 
@@ -36,6 +31,6 @@ Visit `http://localhost:8080`.
 
 ## Enable real deployment later
 
-Create two servers only when you accept their provider costs, copy `deploy/ansible/inventory/hosts.ini.example` to a private credential file, and put their reachable hostnames/IPs in it. In Jenkins, run the pipeline with `DEPLOY=true`.
+Create two servers only when you accept their provider costs. In Jenkins, run the `northstar-cicd` pipeline with `DEPLOY=true` and pass their comma-separated private IPs in `TARGETS`.
 
 The playbook installs Docker, loads the image built by Jenkins, starts the container on port 80, and checks its HTTP response. It never asks Ansible to create AWS resources.
