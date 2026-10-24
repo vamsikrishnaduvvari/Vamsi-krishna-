@@ -17,6 +17,6 @@ if (job == null) {
 }
 
 if (job.nextBuildNumber == 1) {
-  job.scheduleBuild2(10, new hudson.model.Cause.RemoteCause('jenkins-bootstrap', 'Register Pipeline parameters'))
+  job.scheduleBuild2(10, new hudson.model.CauseAction(new hudson.model.Cause.RemoteCause('jenkins-bootstrap', 'Register Pipeline parameters')))
   println("Scheduled initial Jenkins Pipeline build: ${jobName}")
 }
