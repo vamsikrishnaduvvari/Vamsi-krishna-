@@ -31,6 +31,6 @@ Visit `http://localhost:8080`.
 
 ## Enable real deployment later
 
-Create two servers only when you accept their provider costs. In Jenkins, run the `northstar-cicd` pipeline with `DEPLOY=true` and pass their comma-separated private IPs in `TARGETS`.
+Create two servers only when you accept their provider costs. In Jenkins, run the `northstar-cicd` pipeline with `DEPLOY=true` and pass their comma-separated Ansible host lines in `TARGETS`, including `ansible_user` where needed.
 
 The playbook installs Docker, loads the image built by Jenkins, starts the container on port 80, and checks its HTTP response. It never asks Ansible to create AWS resources.

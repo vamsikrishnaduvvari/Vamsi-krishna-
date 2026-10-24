@@ -9,7 +9,7 @@ pipeline {
 
   parameters {
     booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Deploy only after two target servers are available.')
-    string(name: 'TARGETS', defaultValue: '', description: 'Comma-separated private IPs or DNS names for the two web servers.')
+    string(name: 'TARGETS', defaultValue: '', description: 'Comma-separated Ansible host lines; include ansible_user when hosts differ.')
   }
 
   stages {
@@ -42,7 +42,6 @@ pipeline {
           ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-galaxy collection install -r deploy/ansible/requirements.yml
           ANSIBLE_CONFIG=deploy/ansible/ansible.cfg ansible-playbook deploy/ansible/deploy.yml \\
             --private-key /run/deploy-key/ansible-lab.pem \\
-            -e 'ansible_user=ec2-user' \\
             -e "image_name=$IMAGE_NAME:$IMAGE_TAG" \\
             -e "image_archive=$WORKSPACE/$IMAGE_ARCHIVE"
         '''
