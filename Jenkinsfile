@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  triggers {
+    pollSCM('H/5 * * * *')
+  }
+
   environment {
     IMAGE_NAME = 'python-flask-app'
     IMAGE_TAG = "${BUILD_NUMBER}"
