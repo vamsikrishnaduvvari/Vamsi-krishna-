@@ -1,0 +1,52 @@
+---
+- name: Install Docker on Debian hosts
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - docker.io
+    update_cache: true
+    state: present
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Install Docker on RedHat hosts
+  ansible.builtin.dnf:
+    name: docker
+    state: present
+  when: ansible_facts.os_family == 'RedHat'
+
+- name: Enable Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: /opt/python-app
+    state: directory
+    mode: '0755'
+
+- name: Copy image archive from Jenkins
+  ansible.builtin.copy:
+    src: "{{ image_archive }}"
+    dest: /opt/python-app/python-app.tar
+    mode: '0644'
+  notify: Load Flask image
+
+- name: Load image before starting container
+  ansible.builtin.meta: flush_handlers
+
+- name: Run Flask application container
+  community.docker.docker_container:
+    name: python-app
+    image: "{{ image_name }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - '80:8000'
+    recreate: true
+
+- name: Verify application health
+  ansible.builtin.uri:
+    url: http://127.0.0.1/health
+    status_code: 200

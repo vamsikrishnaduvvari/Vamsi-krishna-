@@ -1,0 +1,7 @@
+---
+- name: Deploy Flask application container
+  hosts: web
+  become: true
+  gather_facts: true
+  roles:
+    - flask_web
